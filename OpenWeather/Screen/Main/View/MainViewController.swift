@@ -7,6 +7,7 @@
 
 import UIKit
 import SnapKit
+import MapKit
 
 final class MainViewController: UIViewController {
     private let scrollView = UIScrollView()
@@ -50,16 +51,17 @@ final class MainViewController: UIViewController {
     }()
     private let timeForecastLabel = {
         let label = UILabel()
+        label.text = "3시간 간격의 일기예보"
         label.font = .systemFont(ofSize: 12)
         label.textColor = .label
         label.textAlignment = .center
         return label
     }()
     private lazy var forecastCollectionView = {
-        let view = UICollectionView(frame: .zero, collectionViewLayout: self.flowLayout)
+        let view = UICollectionView(frame: .zero, collectionViewLayout: self.forecastFlowLayout)
         return view
     }()
-    private let flowLayout = {
+    private let forecastFlowLayout = {
         let layout = UICollectionViewFlowLayout()
         return layout
     }()
@@ -73,6 +75,7 @@ final class MainViewController: UIViewController {
     }()
     private let dayForecastLabel = {
         let label = UILabel()
+        label.text = "5일 간의 일기예보"
         label.font = .systemFont(ofSize: 12)
         label.textColor = .label
         label.textAlignment = .center
@@ -96,6 +99,31 @@ final class MainViewController: UIViewController {
         button.configuration = config
         return button
     }()
+    private let locationView = {
+        let view = UIView()
+        view.layer.cornerRadius = 12
+        view.layer.borderWidth = 1
+        view.layer.borderColor = UIColor.systemGray4.cgColor
+        view.clipsToBounds = true
+        return view
+    }()
+    private let locationLabel = {
+        let label = UILabel()
+        label.text = "위치"
+        label.font = .systemFont(ofSize: 12)
+        label.textColor = .label
+        label.textAlignment = .left
+        return label
+    }()
+    private let mapView = MKMapView()
+    private lazy var detailCollectionView = {
+        let view = UICollectionView(frame: .zero, collectionViewLayout: self.detailFlowLayout)
+        return view
+    }()
+    private let detailFlowLayout = {
+        let layout = UICollectionViewFlowLayout()
+        return layout
+    }()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -111,7 +139,7 @@ final class MainViewController: UIViewController {
         
         scrollView.addSubview(contentView)
         
-        [currentView, timeForecastView, dayForecastView].forEach {
+        [currentView, timeForecastView, dayForecastView, locationView, detailCollectionView].forEach {
             contentView.addSubview($0)
         }
         
@@ -125,6 +153,10 @@ final class MainViewController: UIViewController {
         
         [dayForecastLabel, forecastTableView].forEach {
             dayForecastView.addSubview($0)
+        }
+        
+        [locationLabel, mapView].forEach {
+            locationView.addSubview($0)
         }
         
         bottomView.addSubview(listButton)
@@ -183,7 +215,7 @@ final class MainViewController: UIViewController {
         }
         
         dayForecastView.snp.makeConstraints { make in
-            make.top.equalTo(timeForecastView.snp.bottom).offset(20)
+            make.top.equalTo(timeForecastView.snp.bottom).offset(12)
             make.horizontalEdges.equalToSuperview().inset(16)
             make.height.equalTo(300)
         }
@@ -195,6 +227,27 @@ final class MainViewController: UIViewController {
         forecastTableView.snp.makeConstraints { make in
             make.top.equalTo(dayForecastLabel.snp.bottom).offset(8)
             make.horizontalEdges.bottom.equalToSuperview()
+        }
+        
+        locationView.snp.makeConstraints { make in
+            make.top.equalTo(dayForecastView.snp.bottom).offset(12)
+            make.horizontalEdges.equalToSuperview().inset(16)
+            make.height.equalTo(200)
+        }
+        
+        locationLabel.snp.makeConstraints { make in
+            make.top.leading.equalToSuperview().inset(12)
+        }
+        
+        mapView.snp.makeConstraints { make in
+            make.top.equalTo(locationLabel.snp.bottom).offset(8)
+            make.horizontalEdges.bottom.equalToSuperview().inset(12)
+        }
+        
+        detailCollectionView.snp.makeConstraints { make in
+            make.top.equalTo(locationView.snp.bottom).offset(12)
+            make.horizontalEdges.equalTo(16)
+            make.bottom.equalToSuperview().inset(40)
         }
         
         bottomView.snp.makeConstraints { make in
