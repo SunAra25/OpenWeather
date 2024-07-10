@@ -45,6 +45,7 @@ final class MainViewController: UIViewController {
         view.layer.cornerRadius = 12
         view.layer.borderWidth = 1
         view.layer.borderColor = UIColor.systemGray4.cgColor
+        view.clipsToBounds = true
         return view
     }()
     private let timeForecastLabel = {
@@ -67,6 +68,7 @@ final class MainViewController: UIViewController {
         view.layer.cornerRadius = 12
         view.layer.borderWidth = 1
         view.layer.borderColor = UIColor.systemGray4.cgColor
+        view.clipsToBounds = true
         return view
     }()
     private let dayForecastLabel = {
@@ -97,7 +99,107 @@ final class MainViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        view.backgroundColor = .systemBackground
+        setHierarchy()
+        setConstraints()
     }
 
+    func setHierarchy() {
+        [scrollView, bottomView].forEach {
+            view.addSubview($0)
+        }
+        
+        scrollView.addSubview(contentView)
+        
+        [currentView, timeForecastView, dayForecastView].forEach {
+            contentView.addSubview($0)
+        }
+        
+        [cityNameLabel, tempLabel, weatherDescriptionLabel, tempDetailLabel].forEach {
+            currentView.addSubview($0)
+        }
+        
+        [timeForecastLabel, forecastCollectionView].forEach {
+            timeForecastView.addSubview($0)
+        }
+        
+        [dayForecastLabel, forecastTableView].forEach {
+            dayForecastView.addSubview($0)
+        }
+        
+        bottomView.addSubview(listButton)
+    }
+    
+    func setConstraints() {
+        scrollView.snp.makeConstraints { make in
+            make.top.horizontalEdges.equalTo(view.safeAreaLayoutGuide)
+            make.bottom.equalTo(view.safeAreaLayoutGuide).inset(40)
+        }
+        
+        contentView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+            make.width.equalToSuperview()
+            make.height.greaterThanOrEqualToSuperview().priority(.low)
+        }
+        
+        currentView.snp.makeConstraints { make in
+            make.top.horizontalEdges.equalToSuperview()
+        }
+        
+        cityNameLabel.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.top.equalToSuperview().inset(20)
+        }
+        
+        tempLabel.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.top.equalTo(cityNameLabel.snp.bottom).offset(8)
+        }
+        
+        weatherDescriptionLabel.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.top.equalTo(tempLabel.snp.bottom).offset(8)
+        }
+        
+        tempDetailLabel.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.top.equalTo(weatherDescriptionLabel.snp.bottom).offset(8)
+            make.bottom.equalToSuperview().inset(20)
+        }
+        
+        timeForecastView.snp.makeConstraints { make in
+            make.top.equalTo(currentView.snp.bottom).offset(20)
+            make.horizontalEdges.equalToSuperview().inset(16)
+            make.height.equalTo(160)
+        }
+        
+        timeForecastLabel.snp.makeConstraints { make in
+            make.top.leading.equalToSuperview().inset(12)
+        }
+        
+        forecastCollectionView.snp.makeConstraints { make in
+            make.top.equalTo(timeForecastLabel.snp.bottom).offset(8)
+            make.horizontalEdges.bottom.equalToSuperview()
+        }
+        
+        dayForecastView.snp.makeConstraints { make in
+            make.top.equalTo(timeForecastView.snp.bottom).offset(20)
+            make.horizontalEdges.equalToSuperview().inset(16)
+            make.height.equalTo(300)
+        }
+        
+        dayForecastLabel.snp.makeConstraints { make in
+            make.top.leading.equalToSuperview().inset(12)
+        }
+        
+        forecastTableView.snp.makeConstraints { make in
+            make.top.equalTo(dayForecastLabel.snp.bottom).offset(8)
+            make.horizontalEdges.bottom.equalToSuperview()
+        }
+        
+        bottomView.snp.makeConstraints { make in
+            make.horizontalEdges.bottom.equalTo(view)
+            make.top.equalTo(scrollView.snp.bottom)
+        }
+    }
 }
