@@ -10,6 +10,8 @@ import SnapKit
 import MapKit
 
 final class MainViewController: UIViewController {
+    private let viewModel = MainViewModel()
+    
     private let scrollView = UIScrollView()
     private let contentView = UIView()
     private let currentView = UIView()
@@ -128,8 +130,15 @@ final class MainViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
+        
         setHierarchy()
         setConstraints()
+        bind()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        viewModel.inputViewAppear.value = ()
     }
 
     func setHierarchy() {
@@ -258,6 +267,17 @@ final class MainViewController: UIViewController {
         listButton.snp.makeConstraints { make in
             make.top.equalToSuperview().inset(10)
             make.trailing.equalToSuperview().inset(16)
+        }
+    }
+    
+    func bind() {
+        viewModel.outputCurrentInfo.bind { [weak self] data in
+            guard let self, let data else { return }
+            
+            cityNameLabel.text = data.name
+            tempLabel.text = data.main.temp.formatted()
+            weatherDescriptionLabel.text = data.weather.first?.description
+            tempDetailLabel.text = "최고 : \(data.main.tempMax)℃ | 최저 : \(data.main.tempMin)℃" 
         }
     }
 }
