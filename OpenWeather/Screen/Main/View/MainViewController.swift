@@ -112,12 +112,13 @@ final class MainViewController: UIViewController {
         view.layer.borderColor = UIColor.systemGray4.cgColor
         return view
     }()
-    private let listButton = {
+    private lazy var listButton = {
         let button = UIButton()
         var config = UIButton.Configuration.plain()
         config.image = UIImage(systemName: "list.bullet")
         config.baseForegroundColor = .label
         button.configuration = config
+        button.addTarget(self, action: #selector(listBtnDidTap), for: .touchUpInside)
         return button
     }()
     private let locationView = {
@@ -167,6 +168,7 @@ final class MainViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
+        navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: self, action: nil)
         
         setHierarchy()
         setConstraints()
@@ -329,6 +331,19 @@ final class MainViewController: UIViewController {
             guard let self else { return }
             forecastTableView.reloadData()
         }
+        
+        viewModel.outputPushSearchVC.bind { [weak self] data in
+            guard let self, let data else { return }
+            let nextVC = SearchViewController(data)
+            
+            nextVC.completionHandler = { city in
+                UserDefaultManager.shared.lastSearchCityId = city.id
+                UserDefaultManager.shared.lastSearchCityLatitude = city.coord.lat
+                UserDefaultManager.shared.lastSearchCityLongitude = city.coord.lon
+            }
+            
+            navigationController?.pushViewController(nextVC, animated: true)
+        }
     }
     
     func setAnnotation() -> MKPointAnnotation {
@@ -344,6 +359,10 @@ final class MainViewController: UIViewController {
         let center = CLLocationCoordinate2D(latitude: UserDefaultManager.shared.lastSearchCityLatitude, longitude: UserDefaultManager.shared.lastSearchCityLongitude)
         let region = MKCoordinateRegion(center: center, latitudinalMeters: 500, longitudinalMeters: 500)
         return region
+    }
+    
+    @objc func listBtnDidTap() {
+        viewModel.inputListBtnTap.value = ()
     }
 }
 
