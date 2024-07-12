@@ -8,6 +8,7 @@
 import UIKit
 import SnapKit
 import MapKit
+import CoreLocation
 
 final class MainViewController: UIViewController {
     private let viewModel = MainViewModel()
@@ -135,7 +136,12 @@ final class MainViewController: UIViewController {
         label.textAlignment = .left
         return label
     }()
-    private let mapView = MKMapView()
+    private lazy var mapView: MKMapView = {
+        let view = MKMapView()
+        view.addAnnotation(setAnnotation())
+        view.setRegion(setRegion(), animated: true)
+        return view
+    }()
     private lazy var detailCollectionView = {
         let view = UICollectionView(frame: .zero, collectionViewLayout: self.detailFlowLayout)
         return view
@@ -307,6 +313,21 @@ final class MainViewController: UIViewController {
             guard let self else { return }
             forecastTableView.reloadData()
         }
+    }
+    
+    func setAnnotation() -> MKPointAnnotation {
+        let coordinates = CLLocationCoordinate2D(latitude: UserDefaultManager.shared.lastSearchCityLatitude, longitude: UserDefaultManager.shared.lastSearchCityLongitude)
+        
+        let annotation = MKPointAnnotation()
+        annotation.coordinate = coordinates
+        
+        return annotation
+    }
+    
+    func setRegion() -> MKCoordinateRegion {
+        let center = CLLocationCoordinate2D(latitude: UserDefaultManager.shared.lastSearchCityLatitude, longitude: UserDefaultManager.shared.lastSearchCityLongitude)
+        let region = MKCoordinateRegion(center: center, latitudinalMeters: 500, longitudinalMeters: 500)
+        return region
     }
 }
 
