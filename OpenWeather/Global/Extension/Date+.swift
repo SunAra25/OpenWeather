@@ -20,4 +20,16 @@ extension Date {
         let components = calendar.dateComponents([.year, .month, .day], from: self)
         return calendar.date(from: components)
     }
+    
+    func afterNdays(_ n: Int) -> Date? {
+        let date = Calendar.current.date(byAdding: .day, value: n, to: self)
+        return date
+    }
+    
+    func weekend() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "E"
+        formatter.locale = Locale(identifier: "ko_KR")
+        return formatter.string(from: self)
+    }
 }

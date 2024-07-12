@@ -12,7 +12,8 @@ class MainViewModel {
     var inputViewAppear = Observable<Void?>(nil)
     
     var outputCurrentInfo = Observable<OpenWeatherResponse?>(nil)
-    var outputForecastInfo = Observable<ForecastResponse?>(nil)
+    var outputTimeForecastList = Observable<[List]>([])
+    var outputDayForecastList = Observable<[DayForecast]>([])
     
     init() {
         transform()
@@ -27,7 +28,9 @@ class MainViewModel {
             }
             fetchForecast { [weak self] data in
                 guard let self else { return }
-                outputForecastInfo.value = data
+                
+                outputTimeForecastList.value = filterTimeForecast(data)
+                outputDayForecastList.value = filterDayForecast(data)
             }
         }
     }
@@ -76,5 +79,43 @@ extension MainViewModel {
                     print(error)
                 }
             }
+    }
+    
+    func filterTimeForecast(_ response: ForecastResponse?) -> [List] {
+        guard let response else { return [] }
+        let list = response.list
+        let filterList = list.filter { $0.dtTxt.toDate()?.toString() == Date().toString() }
+        
+        if filterList.count < 5 {
+            return Array(list.prefix(upTo: 5))
+        } else {
+            return Array(filterList)
+        }
+    }
+    
+    func filterDayForecast(_ response: ForecastResponse?) -> [DayForecast] {
+        guard let response else { return [] }
+        let list = response.list
+        var forecast5Days: [[List]] = [list.filter { $0.dtTxt.toDate()?.toString() == Date().toString() } ]
+        var result: [DayForecast] = []
+        
+        for n in 1...4 {
+            forecast5Days.append( list.filter { $0.dtTxt.toDate()?.toString() == Date().afterNdays(n)?.toString() } )
+        }
+        
+        forecast5Days.forEach { list in
+            let tempList = list.map { $0.main.temp }
+            
+            guard let min = tempList.min(), let max = tempList.max() else { return }
+            guard let minList = list.filter({ $0.main.temp == min }).first,
+                  let maxList = list.filter({ $0.main.temp == max }).first,
+                  let minDate = minList.dtTxt.toDate(),
+                  let maxDate = maxList.dtTxt.toDate() else { return }
+            let forecast = DayForecast(weekend: minDate.toString() == Date().toString() ? "오늘" : minDate.weekend(), icon: minList.weather.first?.icon, minTemp: min, maxTemp: max)
+            
+            result.append(forecast)
+        }
+        
+        return result
     }
 }

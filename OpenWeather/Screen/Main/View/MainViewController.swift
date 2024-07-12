@@ -96,8 +96,13 @@ final class MainViewController: UIViewController {
         label.textAlignment = .center
         return label
     }()
-    private let forecastTableView = {
+    private lazy var forecastTableView = {
         let view = UITableView()
+        view.delegate = self
+        view.dataSource = self
+        view.register(ForecastTableViewCell.self, forCellReuseIdentifier: ForecastTableViewCell.identifier)
+        view.rowHeight = 60
+        view.isScrollEnabled = false
         return view
     }()
     private let bottomView = {
@@ -139,7 +144,6 @@ final class MainViewController: UIViewController {
         let layout = UICollectionViewFlowLayout()
         return layout
     }()
-    private var timeForecastList: [List] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -240,7 +244,6 @@ final class MainViewController: UIViewController {
         dayForecastView.snp.makeConstraints { make in
             make.top.equalTo(timeForecastView.snp.bottom).offset(12)
             make.horizontalEdges.equalToSuperview().inset(16)
-            make.height.equalTo(300)
         }
         
         dayForecastLabel.snp.makeConstraints { make in
@@ -250,6 +253,7 @@ final class MainViewController: UIViewController {
         forecastTableView.snp.makeConstraints { make in
             make.top.equalTo(dayForecastLabel.snp.bottom).offset(8)
             make.horizontalEdges.bottom.equalToSuperview()
+            make.height.equalTo(300)
         }
         
         locationView.snp.makeConstraints { make in
@@ -294,33 +298,44 @@ final class MainViewController: UIViewController {
             tempDetailLabel.text = "최고 : \(data.main.tempMax)℃ | 최저 : \(data.main.tempMin)℃" 
         }
         
-        viewModel.outputForecastInfo.bind { [weak self] data in
-            guard let self, let data else { return }
-            let todayForecastList = data.list.filter { $0.dtTxt.toDate()?.toString() == Date().toString() }
-            
-            if todayForecastList.count < 5 {
-                let list = data.list.prefix(upTo: 5)
-                 timeForecastList = Array(list)
-            } else {
-                timeForecastList = Array(todayForecastList)
-            }
-            
+        viewModel.outputTimeForecastList.bind { [weak self] data in
+            guard let self else { return }
             forecastCollectionView.reloadData()
+        }
+        
+        viewModel.outputDayForecastList.bind { [weak self] data in
+            guard let self else { return }
+            forecastTableView.reloadData()
         }
     }
 }
 
 extension MainViewController: UICollectionViewDelegate, UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return timeForecastList.count
+        return viewModel.outputTimeForecastList.value.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ForecastCollectionViewCell.identifier, for: indexPath) as? ForecastCollectionViewCell else { return UICollectionViewCell() }
-        
-        let data = timeForecastList[indexPath.row]
+        let list = viewModel.outputTimeForecastList.value
+        let data = list[indexPath.row]
         cell.configureCell(data)
         
+        return cell
+    }
+}
+
+extension MainViewController: UITableViewDelegate, UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return viewModel.outputDayForecastList.value.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: ForecastTableViewCell.identifier, for: indexPath) as? ForecastTableViewCell else { return UITableViewCell() }
+        let list = viewModel.outputDayForecastList.value
+        let data = list[indexPath.row]
+        cell.configureCell(data)
+        cell.selectionStyle = .none
         return cell
     }
 }
