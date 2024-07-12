@@ -12,6 +12,7 @@ class MainViewModel {
     var inputViewAppear = Observable<Void?>(nil)
     
     var outputCurrentInfo = Observable<OpenWeatherResponse?>(nil)
+    var outputForecastInfo = Observable<ForecastResponse?>(nil)
     
     init() {
         transform()
@@ -23,6 +24,10 @@ class MainViewModel {
             fetchCurrentWeather { [weak self] data in
                 guard let self else { return }
                 outputCurrentInfo.value = data
+            }
+            fetchForecast { [weak self] data in
+                guard let self else { return }
+                outputForecastInfo.value = data
             }
         }
     }
@@ -41,6 +46,28 @@ extension MainViewModel {
         AF.request(
             url,
             parameters: parameters).responseDecodable(of: OpenWeatherResponse.self) { response in
+                switch response.result {
+                case .success(let value):
+                    completionHandler(value)
+                case .failure(let error):
+                    completionHandler(nil)
+                    print(error)
+                }
+            }
+    }
+    
+    func fetchForecast(completionHandler: @escaping (ForecastResponse?) -> Void) {
+        let url = "https://api.openweathermap.org/data/2.5/forecast"
+        let appId = Bundle.main.object(forInfoDictionaryKey: "AppID") as? String ?? ""
+        let parameters: Parameters = [
+            "lat" : UserDefaultManager.shared.lastSearchCityLatitude,
+            "lon" : UserDefaultManager.shared.lastSearchCityLongitude,
+            "appid" : appId
+        ]
+        
+        AF.request(
+            url,
+            parameters: parameters).responseDecodable(of: ForecastResponse.self) { response in
                 switch response.result {
                 case .success(let value):
                     completionHandler(value)

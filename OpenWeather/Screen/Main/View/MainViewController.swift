@@ -61,10 +61,22 @@ final class MainViewController: UIViewController {
     }()
     private lazy var forecastCollectionView = {
         let view = UICollectionView(frame: .zero, collectionViewLayout: self.forecastFlowLayout)
+        view.delegate = self
+        view.dataSource = self
+        view.register(ForecastCollectionViewCell.self, forCellWithReuseIdentifier: ForecastCollectionViewCell.identifier)
         return view
     }()
     private let forecastFlowLayout = {
         let layout = UICollectionViewFlowLayout()
+        layout.minimumLineSpacing = 0
+        
+        let width = UIScreen.main.bounds.width - 56
+        let inset: CGFloat = 8
+        let padding: CGFloat = 4
+        let size = (width - inset * 2 - padding * 4) / 5
+        
+        layout.itemSize = CGSize(width: size, height: 140)
+        layout.sectionInset = UIEdgeInsets.init(top: 0, left: 8, bottom: 0, right: 8)
         return layout
     }()
     private let dayForecastView = {
@@ -126,6 +138,7 @@ final class MainViewController: UIViewController {
         let layout = UICollectionViewFlowLayout()
         return layout
     }()
+    private var timeForecastList: [List] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -211,7 +224,7 @@ final class MainViewController: UIViewController {
         timeForecastView.snp.makeConstraints { make in
             make.top.equalTo(currentView.snp.bottom).offset(20)
             make.horizontalEdges.equalToSuperview().inset(16)
-            make.height.equalTo(160)
+            make.height.equalTo(180)
         }
         
         timeForecastLabel.snp.makeConstraints { make in
@@ -279,5 +292,28 @@ final class MainViewController: UIViewController {
             weatherDescriptionLabel.text = data.weather.first?.description
             tempDetailLabel.text = "최고 : \(data.main.tempMax)℃ | 최저 : \(data.main.tempMin)℃" 
         }
+        
+        viewModel.outputForecastInfo.bind { [weak self] data in
+            guard let self, let data else { return }
+            let list = data.list.prefix(upTo: 5)
+            
+            timeForecastList = Array(list)
+            forecastCollectionView.reloadData()
+        }
+    }
+}
+
+extension MainViewController: UICollectionViewDelegate, UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return timeForecastList.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ForecastCollectionViewCell.identifier, for: indexPath) as? ForecastCollectionViewCell else { return UICollectionViewCell() }
+        
+        let data = timeForecastList[indexPath.row]
+        cell.configureCell(data)
+        
+        return cell
     }
 }
