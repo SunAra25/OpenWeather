@@ -144,10 +144,23 @@ final class MainViewController: UIViewController {
     }()
     private lazy var detailCollectionView = {
         let view = UICollectionView(frame: .zero, collectionViewLayout: self.detailFlowLayout)
+        view.delegate = self
+        view.dataSource = self
+        view.register(DetailCollectionViewCell.self, forCellWithReuseIdentifier: DetailCollectionViewCell.identifier)
         return view
     }()
     private let detailFlowLayout = {
         let layout = UICollectionViewFlowLayout()
+        layout.minimumLineSpacing = 4
+        layout.minimumInteritemSpacing = 4
+        
+        let width = UIScreen.main.bounds.width
+        let inset: CGFloat = 16
+        let padding: CGFloat = 4
+        let size = (width - inset * 2 - padding) / 2
+        
+        layout.itemSize = CGSize(width: size, height: size)
+        layout.sectionInset = UIEdgeInsets.init(top: 0, left: 16, bottom: 0, right: 16)
         return layout
     }()
     
@@ -279,8 +292,9 @@ final class MainViewController: UIViewController {
         
         detailCollectionView.snp.makeConstraints { make in
             make.top.equalTo(locationView.snp.bottom).offset(12)
-            make.horizontalEdges.equalTo(16)
-            make.bottom.equalToSuperview().inset(40)
+            make.horizontalEdges.equalToSuperview()
+            make.height.equalTo(detailCollectionView.snp.width)
+            make.bottom.equalToSuperview().inset(20)
         }
         
         bottomView.snp.makeConstraints { make in
@@ -302,6 +316,8 @@ final class MainViewController: UIViewController {
             tempLabel.text = data.main.temp.formatted()
             weatherDescriptionLabel.text = data.weather.first?.description
             tempDetailLabel.text = "최고 : \(data.main.tempMax)℃ | 최저 : \(data.main.tempMin)℃" 
+            
+            detailCollectionView.reloadData()
         }
         
         viewModel.outputTimeForecastList.bind { [weak self] data in
@@ -333,16 +349,43 @@ final class MainViewController: UIViewController {
 
 extension MainViewController: UICollectionViewDelegate, UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return viewModel.outputTimeForecastList.value.count
+        if collectionView == forecastCollectionView {
+            return viewModel.outputTimeForecastList.value.count
+        }
+        return 4
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ForecastCollectionViewCell.identifier, for: indexPath) as? ForecastCollectionViewCell else { return UICollectionViewCell() }
-        let list = viewModel.outputTimeForecastList.value
-        let data = list[indexPath.row]
-        cell.configureCell(data)
-        
-        return cell
+        if collectionView == forecastCollectionView {
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ForecastCollectionViewCell.identifier, for: indexPath) as? ForecastCollectionViewCell else { return UICollectionViewCell() }
+            let list = viewModel.outputTimeForecastList.value
+            let data = list[indexPath.row]
+            cell.configureCell(data)
+            
+            return cell
+        } else {
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: DetailCollectionViewCell.identifier, for: indexPath) as? DetailCollectionViewCell else { return UICollectionViewCell() }
+            
+            if let info = viewModel.outputCurrentInfo.value {
+                switch indexPath.row {
+                case 0:
+                    let data =  WeatherDetail(title: "바람 속도", data: info.wind.speed.formatted() + "m/s", unit: nil, option: info.wind.gust == nil ? nil : "강풍:\(info.wind.gust!)m/s" )
+                    cell.configureCell(data)
+                case 1:
+                    let data = WeatherDetail(title: "구름", data: "\(info.clouds.all)%", unit: nil, option: nil)
+                    cell.configureCell(data)
+                case 2:
+                    let data = WeatherDetail(title: "기압", data: info.main.grndLevel.formatted(), unit: "hpa", option: nil)
+                    cell.configureCell(data)
+                case 3:
+                    let data = WeatherDetail(title: "습도", data: "\(info.main.humidity)%", unit: nil, option: nil)
+                    cell.configureCell(data)
+                default: break
+                }
+            }
+            
+            return cell
+        }
     }
 }
 
