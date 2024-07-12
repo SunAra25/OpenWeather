@@ -68,9 +68,10 @@ final class MainViewController: UIViewController {
     }()
     private let forecastFlowLayout = {
         let layout = UICollectionViewFlowLayout()
-        layout.minimumLineSpacing = 0
+        layout.minimumLineSpacing = 4
+        layout.scrollDirection = .horizontal
         
-        let width = UIScreen.main.bounds.width - 56
+        let width = UIScreen.main.bounds.width - 32
         let inset: CGFloat = 8
         let padding: CGFloat = 4
         let size = (width - inset * 2 - padding * 4) / 5
@@ -295,9 +296,15 @@ final class MainViewController: UIViewController {
         
         viewModel.outputForecastInfo.bind { [weak self] data in
             guard let self, let data else { return }
-            let list = data.list.prefix(upTo: 5)
+            let todayForecastList = data.list.filter { $0.dtTxt.toDate()?.toString() == Date().toString() }
             
-            timeForecastList = Array(list)
+            if todayForecastList.count < 5 {
+                let list = data.list.prefix(upTo: 5)
+                 timeForecastList = Array(list)
+            } else {
+                timeForecastList = Array(todayForecastList)
+            }
+            
             forecastCollectionView.reloadData()
         }
     }
