@@ -11,15 +11,12 @@ class UserDefaultManager {
     static let shared = UserDefaultManager()
     private let userDefaults = UserDefaults.standard
     
-    private init() {
-        lastSearchCityId = 1835847
-        lastSearchCityLatitude = 37.583328
-        lastSearchCityLongitude = 127.0
-    }
+    private init() { }
     
     var lastSearchCityId: Int {
         get {
-            userDefaults.integer(forKey: "lastSearchCityId")
+            let id = userDefaults.integer(forKey: "lastSearchCityId")
+            return id == 0 ? 1835847 : id
         }
         
         set {
@@ -29,7 +26,8 @@ class UserDefaultManager {
     
     var lastSearchCityLatitude: Double {
         get {
-            userDefaults.double(forKey: "lastSearchCityLatitude")
+            let latitude = userDefaults.double(forKey: "lastSearchCityLatitude")
+            return latitude == 0 ? 37.583328 : latitude
         }
         
         set {
@@ -39,7 +37,8 @@ class UserDefaultManager {
     
     var lastSearchCityLongitude: Double {
         get {
-            userDefaults.double(forKey: "lastSearchCityLongitude")
+            let longitude = userDefaults.double(forKey: "lastSearchCityLongitude")
+            return longitude == 0 ? 127.0 : longitude
         }
         
         set {

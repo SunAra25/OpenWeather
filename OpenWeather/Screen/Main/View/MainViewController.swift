@@ -175,6 +175,11 @@ final class MainViewController: UIViewController {
         bind()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        scrollView.setContentOffset(.zero, animated: false)
+    }
+    
     func setHierarchy() {
         [scrollView, bottomView].forEach {
             view.addSubview($0)
@@ -336,7 +341,10 @@ final class MainViewController: UIViewController {
                 UserDefaultManager.shared.lastSearchCityId = city.id
                 UserDefaultManager.shared.lastSearchCityLatitude = city.coord.lat
                 UserDefaultManager.shared.lastSearchCityLongitude = city.coord.lon
+                
                 viewModel.inputViewAppear.value = ()
+                mapView.addAnnotation(setAnnotation())
+                mapView.setRegion(setRegion(), animated: true)
             }
             
             navigationController?.pushViewController(nextVC, animated: true)
