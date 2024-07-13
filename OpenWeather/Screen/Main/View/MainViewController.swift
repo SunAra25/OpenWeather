@@ -169,17 +169,12 @@ final class MainViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
         navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: self, action: nil)
-        
+        viewModel.inputViewAppear.value = ()
         setHierarchy()
         setConstraints()
         bind()
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        viewModel.inputViewAppear.value = ()
-    }
-
     func setHierarchy() {
         [scrollView, bottomView].forEach {
             view.addSubview($0)
@@ -336,10 +331,12 @@ final class MainViewController: UIViewController {
             guard let self, let data else { return }
             let nextVC = SearchViewController(data)
             
-            nextVC.completionHandler = { city in
+            nextVC.completionHandler = { [weak self] city in
+                guard let self else { return }
                 UserDefaultManager.shared.lastSearchCityId = city.id
                 UserDefaultManager.shared.lastSearchCityLatitude = city.coord.lat
                 UserDefaultManager.shared.lastSearchCityLongitude = city.coord.lon
+                viewModel.inputViewAppear.value = ()
             }
             
             navigationController?.pushViewController(nextVC, animated: true)

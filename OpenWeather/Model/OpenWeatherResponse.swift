@@ -48,7 +48,6 @@ struct Info: Codable {
 }
 
 struct System: Codable {
-    let id: Int
     let country: String
     let sunrise, sunset: Int
 }

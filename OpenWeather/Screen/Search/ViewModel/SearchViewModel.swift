@@ -8,6 +8,23 @@
 import Foundation
 
 class SearchViewModel {
+    var inputViewAppear = Observable<Void?>(nil)
+    var inputSelectedCity = Observable<Int?>(nil)
+    
+    var outputCityList = Observable<[City]>([])
+    var outputPopToPrevious = Observable<City?>(nil)
+    
+    init() {
+        inputViewAppear.bind { [weak self] _ in
+            guard let self else { return }
+            outputCityList.value = fetchCityData()
+        }
+        
+        inputSelectedCity.bind { [weak self] index in
+            guard let self, let index else { return }
+            outputPopToPrevious.value = outputCityList.value[index]
+        }
+    }
     
     func fetchCityData() -> [City] {
         guard let path = Bundle.main.path(forResource: "CityList", ofType: "json") else { return [] }
