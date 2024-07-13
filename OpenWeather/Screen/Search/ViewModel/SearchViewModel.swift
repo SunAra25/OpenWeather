@@ -10,6 +10,7 @@ import Foundation
 class SearchViewModel {
     var inputViewAppear = Observable<Void?>(nil)
     var inputSelectedCity = Observable<Int?>(nil)
+    var inputSearchEditing = Observable<String?>(nil)
     
     var outputCityList = Observable<[City]>([])
     var outputPopToPrevious = Observable<City?>(nil)
@@ -23,6 +24,16 @@ class SearchViewModel {
         inputSelectedCity.bind { [weak self] index in
             guard let self, let index else { return }
             outputPopToPrevious.value = outputCityList.value[index]
+        }
+        
+        inputSearchEditing.bind { [weak self] target in
+            guard let self, let target else { return }
+            let list = fetchCityData()
+            if target.isEmpty {
+                outputCityList.value = list
+            } else {
+                outputCityList.value = list.filter { $0.name.contains(target) }
+            }
         }
     }
     

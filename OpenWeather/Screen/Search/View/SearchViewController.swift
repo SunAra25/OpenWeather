@@ -15,7 +15,7 @@ class SearchViewController: UIViewController {
         let search = UISearchController(searchResultsController: nil)
         search.searchBar.placeholder = current
         search.obscuresBackgroundDuringPresentation = false
-        
+        search.searchResultsUpdater = self
         return search
     }()
     private lazy var tableView: UITableView = {
@@ -89,5 +89,13 @@ extension SearchViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         viewModel.inputSelectedCity.value = indexPath.row
+    }
+}
+
+extension SearchViewController: UISearchResultsUpdating {
+    func updateSearchResults(for searchController: UISearchController) {
+        guard let text = searchController.searchBar.text else { return }
+        
+        viewModel.inputSearchEditing.value = text
     }
 }
