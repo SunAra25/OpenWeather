@@ -11,11 +11,13 @@ import Alamofire
 class MainViewModel {
     var inputViewAppear = Observable<Void?>(nil)
     var inputListBtnTap = Observable<Void?>(nil)
+    var inputMapBtnTap = Observable<Void?>(nil)
     
     var outputCurrentInfo = Observable<OpenWeatherResponse?>(nil)
     var outputTimeForecastList = Observable<[List]>([])
     var outputDayForecastList = Observable<[DayForecast]>([])
     var outputPushSearchVC = Observable<String?>(nil)
+    var outputPushMapVC = Observable<Void>(())
     
     init() {
         transform()
@@ -39,6 +41,11 @@ class MainViewModel {
         inputListBtnTap.bind { [weak self] _ in
             guard let self else { return }
             outputPushSearchVC.value = outputCurrentInfo.value?.name
+        }
+        
+        inputMapBtnTap.bind {[weak self] _ in
+            guard let self else { return }
+            outputPushMapVC.value = ()
         }
     }
 }

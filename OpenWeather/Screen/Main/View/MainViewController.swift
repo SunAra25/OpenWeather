@@ -112,6 +112,15 @@ final class MainViewController: UIViewController {
         view.layer.borderColor = UIColor.systemGray4.cgColor
         return view
     }()
+    private lazy var mapButton = {
+        let button = UIButton()
+        var config = UIButton.Configuration.plain()
+        config.image = UIImage(systemName: "map")
+        config.baseForegroundColor = .label
+        button.configuration = config
+        button.addTarget(self, action: #selector(mapBtnDidTap), for: .touchUpInside)
+        return button
+    }()
     private lazy var listButton = {
         let button = UIButton()
         var config = UIButton.Configuration.plain()
@@ -207,6 +216,7 @@ final class MainViewController: UIViewController {
             locationView.addSubview($0)
         }
         
+        bottomView.addSubview(mapButton)
         bottomView.addSubview(listButton)
     }
     
@@ -304,6 +314,11 @@ final class MainViewController: UIViewController {
             make.top.equalTo(scrollView.snp.bottom)
         }
         
+        mapButton.snp.makeConstraints { make in
+            make.top.equalToSuperview().inset(10)
+            make.leading.equalToSuperview().inset(16)
+        }
+        
         listButton.snp.makeConstraints { make in
             make.top.equalToSuperview().inset(10)
             make.trailing.equalToSuperview().inset(16)
@@ -349,6 +364,13 @@ final class MainViewController: UIViewController {
             
             navigationController?.pushViewController(nextVC, animated: true)
         }
+        
+        viewModel.outputPushMapVC.bind { [weak self] _ in
+            guard let self else { return }
+            let nextVC = MapViewController()
+            
+            navigationController?.pushViewController(nextVC, animated: true)
+        }
     }
     
     func setAnnotation() -> MKPointAnnotation {
@@ -368,6 +390,10 @@ final class MainViewController: UIViewController {
     
     @objc func listBtnDidTap() {
         viewModel.inputListBtnTap.value = ()
+    }
+    
+    @objc func mapBtnDidTap() {
+        viewModel.inputMapBtnTap.value = ()
     }
 }
 
