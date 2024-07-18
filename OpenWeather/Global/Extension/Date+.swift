@@ -9,10 +9,9 @@ import Foundation
 
 extension Date {
     func toString() -> String {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .none
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.string(from: self)
+        _DateFormatter.standard.timeStyle = .none
+        _DateFormatter.standard.dateFormat = _DateFormatter.date.rawValue
+        return _DateFormatter.standard.string(from: self)
     }
     
     func withoutTime() -> Date? {
@@ -27,9 +26,8 @@ extension Date {
     }
     
     func weekend() -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "E"
-        formatter.locale = Locale(identifier: "ko_KR")
-        return formatter.string(from: self)
+        _DateFormatter.standard.dateFormat = _DateFormatter.weekend.rawValue
+        _DateFormatter.standard.locale = Locale(identifier: "ko_KR")
+        return _DateFormatter.standard.string(from: self)
     }
 }
